@@ -1,0 +1,16 @@
+{
+	"name": "agentic-ai",
+	"type": "module",
+	"private": true,
+	"workspaces": [
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "bun run --filter '*' dev",
+		"format": "biome format --write .",
+		"lint": "biome lint ."
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.4.10"
+	}
+}
