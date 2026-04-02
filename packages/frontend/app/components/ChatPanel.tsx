@@ -1,5 +1,16 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChatMessage } from "~/types";
+
+const thinkingLabels = [
+	"Thinking...",
+	"Pondering...",
+	"Reasoning...",
+	"Combobulating...",
+	"Processing...",
+	"Analyzing...",
+	"Cogitating...",
+	"Ruminating...",
+];
 
 type ChatPanelProps = {
 	messages: ChatMessage[];
@@ -8,6 +19,27 @@ type ChatPanelProps = {
 
 export function ChatPanel({ messages, isThinking }: ChatPanelProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
+	const [labelIndex, setLabelIndex] = useState(0);
+	const [elapsed, setElapsed] = useState(0);
+
+	// Cycle through thinking labels every 2 seconds while the agent is thinking
+	useEffect(() => {
+		if (!isThinking) {
+			setLabelIndex(0);
+			setElapsed(0);
+			return;
+		}
+		const labelInterval = setInterval(() => {
+			setLabelIndex((i) => (i + 1) % thinkingLabels.length);
+		}, 2000);
+		const timerInterval = setInterval(() => {
+			setElapsed((s) => s + 1);
+		}, 1000);
+		return () => {
+			clearInterval(labelInterval);
+			clearInterval(timerInterval);
+		};
+	}, [isThinking]);
 
 	useEffect(() => {
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,20 +101,10 @@ export function ChatPanel({ messages, isThinking }: ChatPanelProps) {
 									<circle cx="15" cy="14" r="1" fill="#888" stroke="none" />
 								</svg>
 							</div>
-							<div className="flex items-center gap-1 pt-1">
-								<span
-									className="w-2 h-2 rounded-full bg-[#666] animate-bounce"
-									style={{ animationDelay: "0ms" }}
-								/>
-								<span
-									className="w-2 h-2 rounded-full bg-[#666] animate-bounce"
-									style={{ animationDelay: "150ms" }}
-								/>
-								<span
-									className="w-2 h-2 rounded-full bg-[#666] animate-bounce"
-									style={{ animationDelay: "300ms" }}
-								/>
-							</div>
+							<span className="text-[#888] text-sm italic animate-pulse pt-1">
+								{thinkingLabels[labelIndex]}
+							</span>
+							<span className="text-[#555] text-xs pt-1">({elapsed}s)</span>
 						</div>
 					</div>
 				)}
