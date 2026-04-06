@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "highlight.js/styles/github-dark.min.css";
 
 @theme {
 	--font-sans:
@@ -18,4 +19,106 @@ html {
 	color-scheme: dark;
 	background-color: #1a1a1a;
 	color: #e8e4df;
+}
+
+/* Markdown styles for assistant messages */
+.prose-chat p {
+	margin: 0.5em 0;
+}
+
+.prose-chat p:first-child {
+	margin-top: 0;
+}
+
+.prose-chat p:last-child {
+	margin-bottom: 0;
+}
+
+.prose-chat pre {
+	background-color: #161616;
+	border: 1px solid #2a2a2a;
+	border-radius: 0.5rem;
+	padding: 0.75rem 1rem;
+	margin: 0.75rem 0;
+	overflow-x: auto;
+	font-size: 0.8rem;
+	line-height: 1.5;
+}
+
+.prose-chat pre code {
+	background: none;
+	padding: 0;
+	border-radius: 0;
+	font-size: inherit;
+}
+
+.prose-chat code {
+	background-color: #292929;
+	padding: 0.15em 0.35em;
+	border-radius: 0.25rem;
+	font-size: 0.85em;
+}
+
+.prose-chat ul,
+.prose-chat ol {
+	margin: 0.5em 0;
+	padding-left: 1.5em;
+}
+
+.prose-chat li {
+	margin: 0.25em 0;
+}
+
+.prose-chat h1,
+.prose-chat h2,
+.prose-chat h3,
+.prose-chat h4 {
+	margin: 1em 0 0.5em;
+	font-weight: 600;
+	color: #e8e4df;
+}
+
+.prose-chat h1 {
+	font-size: 1.25em;
+}
+.prose-chat h2 {
+	font-size: 1.15em;
+}
+.prose-chat h3 {
+	font-size: 1.05em;
+}
+
+.prose-chat blockquote {
+	border-left: 3px solid #3a3a3a;
+	padding-left: 0.75em;
+	margin: 0.5em 0;
+	color: #999;
+}
+
+.prose-chat a {
+	color: #60a5fa;
+	text-decoration: underline;
+}
+
+.prose-chat table {
+	border-collapse: collapse;
+	margin: 0.75em 0;
+	font-size: 0.85em;
+}
+
+.prose-chat th,
+.prose-chat td {
+	border: 1px solid #3a3a3a;
+	padding: 0.4em 0.75em;
+}
+
+.prose-chat th {
+	background-color: #292929;
+	font-weight: 600;
+}
+
+.prose-chat hr {
+	border: none;
+	border-top: 1px solid #3a3a3a;
+	margin: 1em 0;
 }

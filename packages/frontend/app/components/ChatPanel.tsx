@@ -1,4 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import Markdown from "react-markdown";
+import rehypeHighlight from "rehype-highlight";
+import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "~/types";
 
 const thinkingLabels = [
@@ -79,8 +82,13 @@ export function ChatPanel({
 										<circle cx="15" cy="14" r="1" fill="#888" stroke="none" />
 									</svg>
 								</div>
-								<div className="text-[#e8e4df] leading-relaxed whitespace-pre-wrap pt-1 text-sm sm:text-base">
-									{message.content}
+								<div className="text-[#e8e4df] leading-relaxed pt-1 text-sm sm:text-base prose-chat">
+									<Markdown
+										remarkPlugins={[remarkGfm]}
+										rehypePlugins={[rehypeHighlight]}
+									>
+										{message.content}
+									</Markdown>
 									{isStreaming &&
 										message.id === messages[messages.length - 1]?.id && (
 											<span className="animate-pulse">|</span>
