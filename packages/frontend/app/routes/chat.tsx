@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useLocation, useOutletContext, useParams } from "react-router";
-import type { Route } from "./+types/chat";
 import { ChatPanel } from "~/components/ChatPanel";
 import { DebugPanel } from "~/components/DebugPanel";
 import { MessageInput } from "~/components/MessageInput";
 import { useChat } from "~/hooks/useChat";
+import type { Route } from "./+types/chat";
 import type { LayoutContext } from "./layout";
 
 export function meta({}: Route.MetaArgs) {
@@ -17,11 +18,15 @@ export default function Chat() {
 	const params = useParams<{ id: string }>();
 	const location = useLocation();
 	const { refreshChats } = useOutletContext<LayoutContext>();
-	const initialMessage = (location.state as { initialMessage?: string })
-		?.initialMessage;
+	const state = location.state as {
+		initialMessage?: string;
+		model?: string;
+	};
+	const initialMessage = state?.initialMessage;
+	const [model, setModel] = useState(state?.model ?? "gpt-4.1-mini");
 
 	const { messages, debugEvents, isThinking, isStreaming, sendMessage } =
-		useChat(params.id!, initialMessage, refreshChats);
+		useChat(params.id!, initialMessage, refreshChats, model);
 
 	return (
 		<>
@@ -35,6 +40,8 @@ export default function Chat() {
 					<MessageInput
 						onSend={sendMessage}
 						disabled={isThinking || isStreaming}
+						model={model}
+						onModelChange={setModel}
 					/>
 				</div>
 			</div>

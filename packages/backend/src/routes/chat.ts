@@ -1,5 +1,5 @@
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import type { WSContext, WSMessageReceive } from "hono/ws";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { runAgentLoop } from "../agent/loop";
 import type { AgentEvent, ClientMessage } from "../agent/types";
 
@@ -85,6 +85,7 @@ export async function handleWebSocketMessage(
 			try {
 				await runAgentLoop({
 					messages: [...session.history],
+					model: parsed.model,
 					onEvent: (agentEvent: AgentEvent) => {
 						// Stream each event to the client in real-time
 						ws.send(JSON.stringify(agentEvent));

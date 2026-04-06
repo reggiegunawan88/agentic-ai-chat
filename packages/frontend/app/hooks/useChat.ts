@@ -8,6 +8,7 @@ export function useChat(
 	chatId: string,
 	initialMessage?: string,
 	onSave?: () => void,
+	model?: string,
 ) {
 	const wsRef = useRef<WebSocket | null>(null);
 	const initialSent = useRef(false);
@@ -147,10 +148,15 @@ export function useChat(
 		[startFlushing, stopFlushing, flushRemaining],
 	);
 
+	const modelRef = useRef(model);
+	modelRef.current = model;
+
 	const sendViaWs = useCallback((content: string) => {
 		const ws = wsRef.current;
 		if (!ws || ws.readyState !== WebSocket.OPEN) return;
-		ws.send(JSON.stringify({ type: "message", content }));
+		ws.send(
+			JSON.stringify({ type: "message", content, model: modelRef.current }),
+		);
 	}, []);
 
 	const sendMessage = useCallback(
@@ -209,6 +215,7 @@ export function useChat(
 					JSON.stringify({
 						type: "message",
 						content: initialMessage,
+						model: modelRef.current,
 					}),
 				);
 			}

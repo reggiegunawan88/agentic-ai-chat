@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
-import type { Route } from "./+types/home";
 import { MessageInput } from "~/components/MessageInput";
+import type { Route } from "./+types/home";
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -27,10 +28,11 @@ const suggestions = [
 
 export default function Home() {
 	const navigate = useNavigate();
+	const [model, setModel] = useState("gpt-4.1-mini");
 
 	const handleSend = (content: string) => {
 		const chatId = crypto.randomUUID();
-		navigate(`/chat/${chatId}`, { state: { initialMessage: content } });
+		navigate(`/chat/${chatId}`, { state: { initialMessage: content, model } });
 	};
 
 	return (
@@ -39,7 +41,12 @@ export default function Home() {
 				{getGreeting()}
 			</h1>
 			<div className="w-full max-w-xl">
-				<MessageInput onSend={handleSend} disabled={false} />
+				<MessageInput
+					onSend={handleSend}
+					disabled={false}
+					model={model}
+					onModelChange={setModel}
+				/>
 			</div>
 			<div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4">
 				{suggestions.map((suggestion) => (

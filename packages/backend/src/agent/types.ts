@@ -11,8 +11,14 @@ export type AgentEvent =
 	| { type: "response_end"; content: string }
 	| { type: "error"; message: string };
 
+import type { ChatCompletionCreateParams } from "openai/resources/chat/completions";
+
 export type ClientMessage =
-	| { type: "message"; content: string }
+	| {
+			type: "message";
+			content: string;
+			model?: ChatCompletionCreateParams["model"];
+	  }
 	| {
 			type: "restore";
 			history: { role: "user" | "assistant"; content: string }[];

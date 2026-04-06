@@ -1,14 +1,32 @@
 import { useEffect, useRef, useState } from "react";
 
+const MODELS = [
+	{ id: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
+	{ id: "gpt-4.1-nano", label: "GPT-4.1 Nano" },
+	{ id: "gpt-5-nano", label: "GPT-5 Nano" },
+];
+
 type MessageInputProps = {
 	onSend: (content: string) => void;
 	disabled: boolean;
+	model: string;
+	onModelChange: (model: string) => void;
 };
 
-export function MessageInput({ onSend, disabled }: MessageInputProps) {
+export function MessageInput({
+	onSend,
+	disabled,
+	model,
+	onModelChange,
+}: MessageInputProps) {
 	const [value, setValue] = useState("");
+	const [isModelOpen, setIsModelOpen] = useState(false);
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const dropdownRef = useRef<HTMLDivElement>(null);
+	const menuRef = useRef<HTMLDivElement>(null);
 	const prevDisabledRef = useRef(disabled);
+
+	const selectedModel = MODELS.find((m) => m.id === model) ?? MODELS[0];
 
 	useEffect(() => {
 		if (prevDisabledRef.current && !disabled) {
@@ -16,6 +34,21 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
 		}
 		prevDisabledRef.current = disabled;
 	}, [disabled]);
+
+	useEffect(() => {
+		const handleClickOutside = (e: MouseEvent) => {
+			const target = e.target as Node;
+			if (
+				dropdownRef.current?.contains(target) ||
+				menuRef.current?.contains(target)
+			) {
+				return;
+			}
+			setIsModelOpen(false);
+		};
+		document.addEventListener("click", handleClickOutside);
+		return () => document.removeEventListener("click", handleClickOutside);
+	}, []);
 
 	const resizeTextarea = () => {
 		const el = textareaRef.current;
@@ -50,7 +83,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
 	const isSendDisabled = disabled || value.trim().length === 0;
 
 	return (
-		<div>
+		<div className="relative">
 			<div className="rounded-2xl bg-[#292929] border border-[#3a3a3a] overflow-hidden">
 				<textarea
 					ref={textareaRef}
@@ -87,10 +120,17 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
 						</button>
 					</div>
 
-					{/* Right: model label + send button */}
+					{/* Right: model selector + send button */}
 					<div className="flex items-center gap-2">
-						<span className="text-xs text-[#888] select-none flex items-center gap-1">
-							<span className="font-medium text-[#999]">GPT4.1-mini</span>
+						<button
+							type="button"
+							ref={dropdownRef as React.RefObject<HTMLButtonElement>}
+							onClick={() => setIsModelOpen(!isModelOpen)}
+							className="text-xs text-[#888] select-none flex items-center gap-1 hover:text-[#bbb] transition-colors cursor-pointer"
+						>
+							<span className="font-medium text-[#999]">
+								{selectedModel.label}
+							</span>
 							<svg
 								width="10"
 								height="10"
@@ -103,7 +143,7 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
 							>
 								<polyline points="6 9 12 15 18 9" />
 							</svg>
-						</span>
+						</button>
 						<button
 							type="button"
 							onClick={handleSubmit}
@@ -131,6 +171,31 @@ export function MessageInput({ onSend, disabled }: MessageInputProps) {
 					</div>
 				</div>
 			</div>
+			{isModelOpen && (
+				<div
+					ref={menuRef}
+					className="absolute top-full mt-1 right-0 bg-[#2a2a2a] border border-[#444] rounded-lg shadow-lg py-1 min-w-[160px] z-10"
+				>
+					{MODELS.map((m) => (
+						<button
+							key={m.id}
+							type="button"
+							onClick={() => {
+								console.log("[model-select] clicked:", m.id);
+								onModelChange(m.id);
+								setIsModelOpen(false);
+							}}
+							className={`w-full text-left px-3 py-1.5 text-xs transition-colors cursor-pointer ${
+								m.id === model
+									? "text-[#c96442] bg-[#333]"
+									: "text-[#999] hover:text-[#e8e4df] hover:bg-[#333]"
+							}`}
+						>
+							{m.label}
+						</button>
+					))}
+				</div>
+			)}
 			<p className="text-center text-[11px] text-[#555] mt-2 select-none">
 				AI can make mistakes. Please double-check responses.
 			</p>

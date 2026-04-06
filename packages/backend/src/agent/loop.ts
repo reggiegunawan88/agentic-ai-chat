@@ -1,5 +1,8 @@
 import OpenAI from "openai";
-import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import type {
+	ChatCompletionCreateParams,
+	ChatCompletionMessageParam,
+} from "openai/resources/chat/completions";
 import { executeTool, toolDefinitions } from "./tools";
 import type { AgentEvent } from "./types";
 
@@ -11,6 +14,7 @@ type AgentLoopParams = {
 	messages: ChatCompletionMessageParam[];
 	onEvent: (event: AgentEvent) => void;
 	client?: Pick<OpenAI, "chat">;
+	model?: ChatCompletionCreateParams["model"];
 	maxIterations?: number;
 };
 
@@ -31,6 +35,7 @@ type AssembledToolCall = {
 async function consumeStream(
 	openai: Pick<OpenAI, "chat">,
 	messages: ChatCompletionMessageParam[],
+	model: ChatCompletionCreateParams["model"],
 	onEvent: (event: AgentEvent) => void,
 ): Promise<{
 	content: string;
@@ -41,9 +46,9 @@ async function consumeStream(
 	const toolCallAccumulators = new Map<number, AssembledToolCall>();
 	let finishReason: string | null = null;
 
-	console.log("[loop] calling OpenAI (streaming)...");
+	console.log(`[loop] calling OpenAI (streaming) with model: ${model}...`);
 	const stream = await openai.chat.completions.create({
-		model: "gpt-4.1-mini",
+		model,
 		messages,
 		tools: toolDefinitions,
 		stream: true,
@@ -166,6 +171,7 @@ export async function runAgentLoop({
 	messages,
 	onEvent,
 	client,
+	model = "gpt-4.1-mini",
 	maxIterations = DEFAULT_MAX_ITERATIONS,
 }: AgentLoopParams): Promise<void> {
 	console.log("[loop] starting agent loop");
@@ -187,6 +193,7 @@ export async function runAgentLoop({
 			({ content, toolCalls, finishReason } = await consumeStream(
 				openai,
 				conversationMessages,
+				model,
 				onEvent,
 			));
 		} catch (error) {
