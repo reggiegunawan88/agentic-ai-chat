@@ -37,40 +37,65 @@ export async function handleWebSocketMessage(
 		return;
 	}
 
-	if (parsed.type !== "message" || !parsed.content) {
-		ws.send(
-			JSON.stringify({
-				type: "error",
-				message: "Invalid message format",
-			} satisfies AgentEvent),
-		);
-		return;
-	}
+	switch (parsed.type) {
+		case "restore": {
+			session.history = parsed.history.map((msg) => ({
+				role: msg.role,
+				content: msg.content,
+			}));
+			console.log(
+				`[ws] restored ${parsed.history.length} messages`,
+			);
+			return;
+		}
 
-	session.history.push({ role: "user", content: parsed.content });
+		case "message": {
+			if (!parsed.content) {
+				ws.send(
+					JSON.stringify({
+						type: "error",
+						message: "Empty message",
+					} satisfies AgentEvent),
+				);
+				return;
+			}
 
-	try {
-		await runAgentLoop({
-			messages: [...session.history],
-			onEvent: (agentEvent: AgentEvent) => {
-				ws.send(JSON.stringify(agentEvent));
+			session.history.push({ role: "user", content: parsed.content });
 
-				if (agentEvent.type === "response") {
-					session.history.push({
-						role: "assistant",
-						content: agentEvent.content,
-					});
-				}
-			},
-		});
-	} catch (error) {
-		console.error("[ws] agent loop crashed:", error);
-		ws.send(
-			JSON.stringify({
-				type: "error",
-				message: `Agent error: ${error instanceof Error ? error.message : "unknown"}`,
-			} satisfies AgentEvent),
-		);
+			try {
+				await runAgentLoop({
+					messages: [...session.history],
+					onEvent: (agentEvent: AgentEvent) => {
+						ws.send(JSON.stringify(agentEvent));
+
+						if (agentEvent.type === "response_end") {
+							session.history.push({
+								role: "assistant",
+								content: agentEvent.content,
+							});
+						}
+					},
+				});
+			} catch (error) {
+				console.error("[ws] agent loop crashed:", error);
+				ws.send(
+					JSON.stringify({
+						type: "error",
+						message: `Agent error: ${error instanceof Error ? error.message : "unknown"}`,
+					} satisfies AgentEvent),
+				);
+			}
+			return;
+		}
+
+		default: {
+			ws.send(
+				JSON.stringify({
+					type: "error",
+					message: "Unknown message type",
+				} satisfies AgentEvent),
+			);
+		}
 	}
 }
 

@@ -7,10 +7,13 @@ export type AgentEvent =
 			iteration: number;
 	  }
 	| { type: "tool_result"; tool: string; result: string; iteration: number }
-	| { type: "response"; content: string }
+	| { type: "response_delta"; delta: string }
+	| { type: "response_end"; content: string }
 	| { type: "error"; message: string };
 
-export type ClientMessage = {
-	type: "message";
-	content: string;
-};
+export type ClientMessage =
+	| { type: "message"; content: string }
+	| {
+			type: "restore";
+			history: { role: "user" | "assistant"; content: string }[];
+	  };

@@ -2,6 +2,38 @@ import { describe, expect, it } from "bun:test";
 import { runAgentLoop } from "../loop";
 import type { AgentEvent } from "../types";
 
+function createMockStream(
+	chunks: Array<{
+		content?: string | null;
+		tool_calls?: Array<{
+			index: number;
+			id?: string;
+			type?: "function";
+			function?: { name?: string; arguments?: string };
+		}>;
+		finish_reason?: string | null;
+	}>,
+): AsyncIterable<unknown> {
+	return {
+		async *[Symbol.asyncIterator]() {
+			for (const chunk of chunks) {
+				yield {
+					choices: [
+						{
+							delta: {
+								content: chunk.content ?? null,
+								tool_calls: chunk.tool_calls ?? undefined,
+							},
+							finish_reason: chunk.finish_reason ?? null,
+							index: 0,
+						},
+					],
+				};
+			}
+		},
+	};
+}
+
 function createMockClient(
 	responses: Array<{
 		content?: string | null;
@@ -18,18 +50,25 @@ function createMockClient(
 			completions: {
 				create: async () => {
 					const response = responses[callIndex++];
-					return {
-						choices: [
-							{
-								message: {
-									role: "assistant" as const,
-									content: response.content ?? null,
-									tool_calls: response.tool_calls ?? undefined,
-								},
-								finish_reason: response.tool_calls ? "tool_calls" : "stop",
-							},
-						],
-					};
+					if (response.tool_calls) {
+						return createMockStream([
+							...response.tool_calls.map((tc, i) => ({
+								tool_calls: [
+									{
+										index: i,
+										id: tc.id,
+										type: tc.type,
+										function: tc.function,
+									},
+								],
+							})),
+							{ finish_reason: "tool_calls" },
+						]);
+					}
+					return createMockStream([
+						{ content: response.content ?? "" },
+						{ finish_reason: "stop" },
+					]);
 				},
 			},
 		},
@@ -49,7 +88,8 @@ describe("runAgentLoop", () => {
 
 		expect(events).toEqual([
 			{ type: "thinking", iteration: 1 },
-			{ type: "response", content: "Hello!" },
+			{ type: "response_delta", delta: "Hello!" },
+			{ type: "response_end", content: "Hello!" },
 		]);
 	});
 
@@ -92,7 +132,11 @@ describe("runAgentLoop", () => {
 		});
 		expect(events[3]).toEqual({ type: "thinking", iteration: 2 });
 		expect(events[4]).toEqual({
-			type: "response",
+			type: "response_delta",
+			delta: "The answer is 4.",
+		});
+		expect(events[5]).toEqual({
+			type: "response_end",
 			content: "The answer is 4.",
 		});
 	});

@@ -30,15 +30,60 @@ export async function runAgentLoop({
 	for (let iteration = 1; iteration <= maxIterations; iteration++) {
 		onEvent({ type: "thinking", iteration });
 
-		let completion: OpenAI.Chat.Completions.ChatCompletion;
+		let contentAccumulator = "";
+		const toolCallAccumulators = new Map<
+			number,
+			{
+				id: string;
+				type: "function";
+				function: { name: string; arguments: string };
+			}
+		>();
+		let finishReason: string | null = null;
+
 		try {
-			console.log("[loop] calling OpenAI...");
-			completion = (await openai.chat.completions.create({
+			console.log("[loop] calling OpenAI (streaming)...");
+			const stream = await openai.chat.completions.create({
 				model: "gpt-4.1-mini",
 				messages: conversationMessages,
 				tools: toolDefinitions,
-			})) as OpenAI.Chat.Completions.ChatCompletion;
-			console.log("[loop] OpenAI responded");
+				stream: true,
+			});
+
+			for await (const chunk of stream) {
+				const choice = chunk.choices[0];
+				if (!choice) continue;
+
+				if (choice.finish_reason) {
+					finishReason = choice.finish_reason;
+				}
+
+				const delta = choice.delta;
+
+				if (delta.content) {
+					contentAccumulator += delta.content;
+					onEvent({ type: "response_delta", delta: delta.content });
+				}
+
+				if (delta.tool_calls) {
+					for (const tc of delta.tool_calls) {
+						let acc = toolCallAccumulators.get(tc.index);
+						if (!acc) {
+							acc = {
+								id: tc.id ?? "",
+								type: "function",
+								function: { name: "", arguments: "" },
+							};
+							toolCallAccumulators.set(tc.index, acc);
+						}
+						if (tc.id) acc.id = tc.id;
+						if (tc.function?.name) acc.function.name += tc.function.name;
+						if (tc.function?.arguments)
+							acc.function.arguments += tc.function.arguments;
+					}
+				}
+			}
+			console.log("[loop] stream ended");
 		} catch (error) {
 			console.error("[loop] OpenAI error:", error);
 			onEvent({
@@ -48,23 +93,32 @@ export async function runAgentLoop({
 			return;
 		}
 
-		const choice = completion.choices[0];
-		const assistantMessage = choice.message;
-
-		// IMPORTANT: append assistant message BEFORE tool results (OpenAI API requirement)
-		conversationMessages.push(assistantMessage);
-
-		// No tool calls → final response
+		// No tool calls → final text response
 		if (
-			!assistantMessage.tool_calls ||
-			assistantMessage.tool_calls.length === 0
+			finishReason === "stop" ||
+			(finishReason !== "tool_calls" && toolCallAccumulators.size === 0)
 		) {
-			onEvent({ type: "response", content: assistantMessage.content ?? "" });
+			onEvent({ type: "response_end", content: contentAccumulator });
+			conversationMessages.push({
+				role: "assistant",
+				content: contentAccumulator,
+			});
 			return;
 		}
 
+		// Assemble tool calls and push assistant message to history
+		const assembledToolCalls = [...toolCallAccumulators.entries()]
+			.sort(([a], [b]) => a - b)
+			.map(([, tc]) => tc);
+
+		conversationMessages.push({
+			role: "assistant",
+			content: contentAccumulator || null,
+			tool_calls: assembledToolCalls,
+		});
+
 		// Execute tools sequentially for clear debug event ordering
-		for (const toolCall of assistantMessage.tool_calls) {
+		for (const toolCall of assembledToolCalls) {
 			const toolName = toolCall.function.name;
 			let toolArgs: Record<string, unknown>;
 
@@ -81,7 +135,12 @@ export async function runAgentLoop({
 				return;
 			}
 
-			onEvent({ type: "tool_call", tool: toolName, args: toolArgs, iteration });
+			onEvent({
+				type: "tool_call",
+				tool: toolName,
+				args: toolArgs,
+				iteration,
+			});
 
 			const result = await executeTool(toolName, toolArgs);
 
