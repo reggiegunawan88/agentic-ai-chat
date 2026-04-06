@@ -15,9 +15,10 @@ const thinkingLabels = [
 type ChatPanelProps = {
 	messages: ChatMessage[];
 	isThinking: boolean;
+	isStreaming: boolean;
 };
 
-export function ChatPanel({ messages, isThinking }: ChatPanelProps) {
+export function ChatPanel({ messages, isThinking, isStreaming }: ChatPanelProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const [labelIndex, setLabelIndex] = useState(0);
 	const [elapsed, setElapsed] = useState(0);
@@ -51,13 +52,13 @@ export function ChatPanel({ messages, isThinking }: ChatPanelProps) {
 				{messages.map((message) =>
 					message.role === "user" ? (
 						<div key={message.id} className="flex justify-end">
-							<div className="bg-[#292929] border border-[#3a3a3a] rounded-2xl px-4 py-3 max-w-[70%] text-[#e8e4df] leading-relaxed whitespace-pre-wrap">
+							<div className="bg-[#292929] border border-[#3a3a3a] rounded-2xl px-3 sm:px-4 py-3 max-w-[85%] sm:max-w-[70%] text-[#e8e4df] leading-relaxed whitespace-pre-wrap text-sm sm:text-base">
 								{message.content}
 							</div>
 						</div>
 					) : (
 						<div key={message.id} className="flex justify-start">
-							<div className="flex items-start gap-3 max-w-[70%]">
+							<div className="flex items-start gap-2 sm:gap-3 max-w-[85%] sm:max-w-[70%]">
 								<div className="mt-1 flex-shrink-0 w-6 h-6 rounded-full bg-[#2a2a2a] border border-[#3a3a3a] flex items-center justify-center">
 									<svg
 										width="14"
@@ -74,8 +75,11 @@ export function ChatPanel({ messages, isThinking }: ChatPanelProps) {
 										<circle cx="15" cy="14" r="1" fill="#888" stroke="none" />
 									</svg>
 								</div>
-								<div className="text-[#e8e4df] leading-relaxed whitespace-pre-wrap pt-1">
+								<div className="text-[#e8e4df] leading-relaxed whitespace-pre-wrap pt-1 text-sm sm:text-base">
 									{message.content}
+									{isStreaming && message.id === messages[messages.length - 1]?.id && (
+										<span className="animate-pulse">|</span>
+									)}
 								</div>
 							</div>
 						</div>

@@ -1,9 +1,10 @@
-import { useLocation } from "react-router";
+import { useLocation, useOutletContext, useParams } from "react-router";
 import type { Route } from "./+types/chat";
 import { ChatPanel } from "~/components/ChatPanel";
 import { DebugPanel } from "~/components/DebugPanel";
 import { MessageInput } from "~/components/MessageInput";
 import { useChat } from "~/hooks/useChat";
+import type { LayoutContext } from "./layout";
 
 export function meta({}: Route.MetaArgs) {
 	return [
@@ -13,22 +14,24 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export default function Chat() {
+	const params = useParams<{ id: string }>();
 	const location = useLocation();
+	const { refreshChats } = useOutletContext<LayoutContext>();
 	const initialMessage = (location.state as { initialMessage?: string })
 		?.initialMessage;
 
-	const { messages, debugEvents, isThinking, sendMessage } =
-		useChat(initialMessage);
+	const { messages, debugEvents, isThinking, isStreaming, sendMessage } =
+		useChat(params.id!, initialMessage, refreshChats);
 
 	return (
-		<div className="flex h-full">
+		<>
 			<div className="flex-1 flex flex-col min-w-0">
-				<ChatPanel messages={messages} isThinking={isThinking} />
-				<div className="max-w-3xl mx-auto w-full px-4 pb-4">
-					<MessageInput onSend={sendMessage} disabled={isThinking} />
+				<ChatPanel messages={messages} isThinking={isThinking} isStreaming={isStreaming} />
+				<div className="max-w-3xl mx-auto w-full px-2 sm:px-4 pb-3 sm:pb-4">
+					<MessageInput onSend={sendMessage} disabled={isThinking || isStreaming} />
 				</div>
 			</div>
 			<DebugPanel events={debugEvents} />
-		</div>
+		</>
 	);
 }

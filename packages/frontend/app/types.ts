@@ -7,7 +7,8 @@ export type AgentEvent =
 			iteration: number;
 	  }
 	| { type: "tool_result"; tool: string; result: string; iteration: number }
-	| { type: "response"; content: string }
+	| { type: "response_delta"; delta: string }
+	| { type: "response_end"; content: string }
 	| { type: "error"; message: string };
 
 export type ChatMessage = {
@@ -18,4 +19,11 @@ export type ChatMessage = {
 
 export type DebugEntry = AgentEvent & {
 	timestamp: number;
+};
+
+export type ChatMeta = {
+	id: string;
+	title: string;
+	createdAt: number;
+	updatedAt: number;
 };

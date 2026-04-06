@@ -23,10 +23,15 @@ const EVENT_STYLES: Record<DebugEntry["type"], EventStyleConfig> = {
 		color: "#4ade80",
 		label: "Tool Result",
 	},
-	response: {
-		icon: "\u203A\u203A", // double chevron ›› (response/output indicator)
+	response_delta: {
+		icon: "\u25B8", // small right triangle ▸
 		color: "#60a5fa",
-		label: "Response",
+		label: "Streaming",
+	},
+	response_end: {
+		icon: "\u203A\u203A", // double chevron ››
+		color: "#60a5fa",
+		label: "Response Complete",
 	},
 	error: {
 		icon: "\u2715", // multiplication x ✕
@@ -137,7 +142,18 @@ function EventDetail({ entry }: EventDetailProps) {
 		);
 	}
 
-	if (entry.type === "response") {
+	if (entry.type === "response_delta") {
+		return (
+			<div>
+				{header}
+				<p className="text-[11px] mt-1" style={{ color: "#999" }}>
+					Streaming tokens...
+				</p>
+			</div>
+		);
+	}
+
+	if (entry.type === "response_end") {
 		return (
 			<div>
 				{header}
@@ -174,21 +190,56 @@ function EventDetail({ entry }: EventDetailProps) {
 	return null;
 }
 
-type DebugPanelProps = {
-	events: DebugEntry[];
-};
-
-export function DebugPanel({ events }: DebugPanelProps) {
-	const [isOpen, setIsOpen] = useState(true);
+function EventList({ events }: { events: DebugEntry[] }) {
 	const scrollRef = useRef<HTMLDivElement>(null);
-
 	const eventCount = events.length;
+
 	// biome-ignore lint/correctness/useExhaustiveDependencies: eventCount is a derived primitive that triggers scroll; scrollRef.current is intentionally excluded
 	useEffect(() => {
 		const el = scrollRef.current;
 		if (!el) return;
 		el.scrollTop = el.scrollHeight;
 	}, [eventCount]);
+
+	return (
+		<div
+			ref={scrollRef}
+			className="flex-1 overflow-y-auto px-2 py-2"
+			style={{ minHeight: 0 }}
+		>
+			{events.length === 0 ? (
+				<p
+					className="text-[11px] text-center mt-8 select-none"
+					style={{ color: "#444" }}
+				>
+					Agent events will appear here...
+				</p>
+			) : (
+				<ul className="space-y-2">
+					{events.map((entry) => (
+						<li
+							key={`${entry.timestamp}-${entry.type}`}
+							className="rounded px-2 py-1.5"
+							style={{
+								backgroundColor: "#191919",
+								borderLeft: `2px solid ${EVENT_STYLES[entry.type].color}33`,
+							}}
+						>
+							<EventDetail entry={entry} />
+						</li>
+					))}
+				</ul>
+			)}
+		</div>
+	);
+}
+
+type DebugPanelProps = {
+	events: DebugEntry[];
+};
+
+export function DebugPanel({ events }: DebugPanelProps) {
+	const [isOpen, setIsOpen] = useState(true);
 
 	const toggleButton = (
 		<button
@@ -207,90 +258,108 @@ export function DebugPanel({ events }: DebugPanelProps) {
 		</button>
 	);
 
-	if (!isOpen) {
-		return (
-			<div
-				className="flex flex-col items-center shrink-0"
-				style={{
-					width: "40px",
-					borderLeft: "1px solid #2a2a2a",
-					backgroundColor: "#1f1f1f",
-				}}
-			>
-				<div
-					className="w-full py-2"
-					style={{ borderBottom: "1px solid #2a2a2a" }}
-				>
-					{toggleButton}
-				</div>
-				<div
-					className="mt-4 text-[10px] font-medium tracking-widest select-none"
-					style={{
-						color: "#444",
-						writingMode: "vertical-rl",
-						textOrientation: "mixed",
-						transform: "rotate(180deg)",
-					}}
-				>
-					DEBUG
-				</div>
-			</div>
-		);
-	}
-
 	return (
-		<div
-			className="flex flex-col shrink-0"
-			style={{
-				width: "384px",
-				borderLeft: "1px solid #2a2a2a",
-				backgroundColor: "#1f1f1f",
-			}}
-		>
-			{/* Panel header */}
-			<div
-				className="flex items-center justify-between px-3 py-2 shrink-0"
-				style={{ borderBottom: "1px solid #2a2a2a" }}
-			>
-				<span
-					className="text-[11px] font-medium tracking-widest uppercase select-none"
-					style={{ color: "#555" }}
+		<>
+			{/* Mobile: floating toggle button + full-screen overlay */}
+			<div className="md:hidden">
+				<button
+					type="button"
+					onClick={() => setIsOpen((prev) => !prev)}
+					className="fixed bottom-20 right-3 z-40 w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-colors"
+					style={{
+						backgroundColor: isOpen ? "#c96442" : "#292929",
+						border: "1px solid #3a3a3a",
+					}}
+					aria-label="Toggle debug panel"
 				>
-					Debug
-				</span>
-				{toggleButton}
-			</div>
+					<span className="text-[10px] font-bold text-[#e8e4df] select-none">
+						{isOpen ? "\u2715" : "DBG"}
+					</span>
+				</button>
 
-			{/* Events list */}
-			<div
-				ref={scrollRef}
-				className="flex-1 overflow-y-auto px-2 py-2"
-				style={{ minHeight: 0 }}
-			>
-				{events.length === 0 ? (
-					<p
-						className="text-[11px] text-center mt-8 select-none"
-						style={{ color: "#444" }}
+				{isOpen && (
+					<div
+						className="fixed inset-0 z-30 flex flex-col"
+						style={{ backgroundColor: "#1f1f1f" }}
 					>
-						Agent events will appear here...
-					</p>
-				) : (
-					<ul className="space-y-2">
-						{events.map((entry) => (
-							<li
-								key={`${entry.timestamp}-${entry.type}`}
-								className="rounded px-2 py-1.5"
-								style={{
-									backgroundColor: "#191919",
-									borderLeft: `2px solid ${EVENT_STYLES[entry.type].color}33`,
-								}}
+						<div
+							className="flex items-center justify-between px-3 py-3 shrink-0"
+							style={{ borderBottom: "1px solid #2a2a2a" }}
+						>
+							<span
+								className="text-[11px] font-medium tracking-widest uppercase select-none"
+								style={{ color: "#555" }}
 							>
-								<EventDetail entry={entry} />
-							</li>
-						))}
-					</ul>
+								Debug
+							</span>
+							<button
+								type="button"
+								onClick={() => setIsOpen(false)}
+								className="w-7 h-7 rounded-lg flex items-center justify-center text-[#888] hover:text-[#e8e4df] hover:bg-[#2a2a2a] transition-colors"
+								aria-label="Close debug panel"
+							>
+								<span className="text-sm font-mono">{"\u2715"}</span>
+							</button>
+						</div>
+						<EventList events={events} />
+					</div>
 				)}
 			</div>
-		</div>
+
+			{/* Desktop: side panel */}
+			<div className="hidden md:flex">
+				{!isOpen ? (
+					<div
+						className="flex flex-col items-center shrink-0"
+						style={{
+							width: "40px",
+							borderLeft: "1px solid #2a2a2a",
+							backgroundColor: "#1f1f1f",
+						}}
+					>
+						<div
+							className="w-full py-2"
+							style={{ borderBottom: "1px solid #2a2a2a" }}
+						>
+							{toggleButton}
+						</div>
+						<div
+							className="mt-4 text-[10px] font-medium tracking-widest select-none"
+							style={{
+								color: "#444",
+								writingMode: "vertical-rl",
+								textOrientation: "mixed",
+								transform: "rotate(180deg)",
+							}}
+						>
+							DEBUG
+						</div>
+					</div>
+				) : (
+					<div
+						className="flex flex-col shrink-0"
+						style={{
+							width: "384px",
+							borderLeft: "1px solid #2a2a2a",
+							backgroundColor: "#1f1f1f",
+						}}
+					>
+						<div
+							className="flex items-center justify-between px-3 py-2 shrink-0"
+							style={{ borderBottom: "1px solid #2a2a2a" }}
+						>
+							<span
+								className="text-[11px] font-medium tracking-widest uppercase select-none"
+								style={{ color: "#555" }}
+							>
+								Debug
+							</span>
+							{toggleButton}
+						</div>
+						<EventList events={events} />
+					</div>
+				)}
+			</div>
+		</>
 	);
 }

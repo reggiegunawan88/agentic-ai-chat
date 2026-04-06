@@ -34,20 +34,20 @@ export default function Home() {
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center h-full">
-			<h1 className="text-4xl font-light text-[#e8e4df]/80 mb-8">
+		<div className="flex-1 flex flex-col items-center justify-center min-w-0 px-4">
+			<h1 className="text-2xl sm:text-4xl font-light text-[#e8e4df]/80 mb-6 sm:mb-8">
 				{getGreeting()}
 			</h1>
-			<div className="w-full max-w-xl px-4">
+			<div className="w-full max-w-xl">
 				<MessageInput onSend={handleSend} disabled={false} />
 			</div>
-			<div className="flex gap-3 mt-4">
+			<div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4">
 				{suggestions.map((suggestion) => (
 					<button
 						key={suggestion.label}
 						type="button"
 						onClick={() => handleSend(suggestion.message)}
-						className="px-4 py-2 rounded-full border border-[#3a3a3a] bg-[#292929] text-sm text-[#888] hover:text-[#e8e4df] hover:border-[#555] transition-colors cursor-pointer"
+						className="px-3 sm:px-4 py-2 rounded-full border border-[#3a3a3a] bg-[#292929] text-sm text-[#888] hover:text-[#e8e4df] hover:border-[#555] transition-colors cursor-pointer"
 					>
 						{suggestion.label}
 					</button>

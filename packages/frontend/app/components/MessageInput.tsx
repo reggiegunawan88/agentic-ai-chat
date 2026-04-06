@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type MessageInputProps = {
 	onSend: (content: string) => void;
@@ -8,6 +8,14 @@ type MessageInputProps = {
 export function MessageInput({ onSend, disabled }: MessageInputProps) {
 	const [value, setValue] = useState("");
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
+	const prevDisabledRef = useRef(disabled);
+
+	useEffect(() => {
+		if (prevDisabledRef.current && !disabled) {
+			textareaRef.current?.focus();
+		}
+		prevDisabledRef.current = disabled;
+	}, [disabled]);
 
 	const resizeTextarea = () => {
 		const el = textareaRef.current;
