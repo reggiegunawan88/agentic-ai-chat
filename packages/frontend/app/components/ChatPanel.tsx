@@ -18,7 +18,11 @@ type ChatPanelProps = {
 	isStreaming: boolean;
 };
 
-export function ChatPanel({ messages, isThinking, isStreaming }: ChatPanelProps) {
+export function ChatPanel({
+	messages,
+	isThinking,
+	isStreaming,
+}: ChatPanelProps) {
 	const bottomRef = useRef<HTMLDivElement>(null);
 	const [labelIndex, setLabelIndex] = useState(0);
 	const [elapsed, setElapsed] = useState(0);
@@ -77,9 +81,10 @@ export function ChatPanel({ messages, isThinking, isStreaming }: ChatPanelProps)
 								</div>
 								<div className="text-[#e8e4df] leading-relaxed whitespace-pre-wrap pt-1 text-sm sm:text-base">
 									{message.content}
-									{isStreaming && message.id === messages[messages.length - 1]?.id && (
-										<span className="animate-pulse">|</span>
-									)}
+									{isStreaming &&
+										message.id === messages[messages.length - 1]?.id && (
+											<span className="animate-pulse">|</span>
+										)}
 								</div>
 							</div>
 						</div>

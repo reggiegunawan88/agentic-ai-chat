@@ -33,14 +33,9 @@ function ChatList({
 								onClick={() => onSelectChat(chat.id)}
 								className="w-full text-left px-3 py-2 rounded-lg text-sm truncate transition-colors"
 								style={{
-									color:
-										chat.id === activeChatId
-											? "#e8e4df"
-											: "#999",
+									color: chat.id === activeChatId ? "#e8e4df" : "#999",
 									backgroundColor:
-										chat.id === activeChatId
-											? "#292929"
-											: "transparent",
+										chat.id === activeChatId ? "#292929" : "transparent",
 								}}
 								title={chat.title}
 							>

@@ -11,9 +11,7 @@ export type LayoutContext = {
 export default function AppLayout() {
 	const navigate = useNavigate();
 	const location = useLocation();
-	const [chats, setChats] = useState<ChatMeta[]>(() =>
-		chatStorage.listChats(),
-	);
+	const [chats, setChats] = useState<ChatMeta[]>(() => chatStorage.listChats());
 
 	const refreshChats = () => setChats(chatStorage.listChats());
 

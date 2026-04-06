@@ -41,9 +41,7 @@ export function useChat(
 
 			setMessages((prev) =>
 				prev.map((msg) =>
-					msg.id === targetId
-						? { ...msg, content: msg.content + chunk }
-						: msg,
+					msg.id === targetId ? { ...msg, content: msg.content + chunk } : msg,
 				),
 			);
 		}, FLUSH_INTERVAL_MS);
@@ -170,9 +168,7 @@ export function useChat(
 	// biome-ignore lint/correctness/useExhaustiveDependencies: We only want this to run once on mount; handleEvent and sendViaWs are stable refs
 	useEffect(() => {
 		// Load stored messages for resumed chats
-		const stored = initialMessage
-			? null
-			: chatStorage.loadMessages(chatId);
+		const stored = initialMessage ? null : chatStorage.loadMessages(chatId);
 		if (stored && stored.length > 0) {
 			setMessages(stored);
 		}

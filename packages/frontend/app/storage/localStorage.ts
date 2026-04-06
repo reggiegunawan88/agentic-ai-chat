@@ -25,10 +25,7 @@ export class LocalChatStorage implements ChatStorage {
 	saveChat(chatId: string, messages: ChatMessage[]): void {
 		if (!isBrowser) return;
 		// Save messages
-		localStorage.setItem(
-			MESSAGES_PREFIX + chatId,
-			JSON.stringify(messages),
-		);
+		localStorage.setItem(MESSAGES_PREFIX + chatId, JSON.stringify(messages));
 
 		// Derive title from first user message
 		const firstUserMsg = messages.find((m) => m.role === "user");

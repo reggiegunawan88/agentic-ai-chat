@@ -26,9 +26,16 @@ export default function Chat() {
 	return (
 		<>
 			<div className="flex-1 flex flex-col min-w-0">
-				<ChatPanel messages={messages} isThinking={isThinking} isStreaming={isStreaming} />
+				<ChatPanel
+					messages={messages}
+					isThinking={isThinking}
+					isStreaming={isStreaming}
+				/>
 				<div className="max-w-3xl mx-auto w-full px-2 sm:px-4 pb-3 sm:pb-4">
-					<MessageInput onSend={sendMessage} disabled={isThinking || isStreaming} />
+					<MessageInput
+						onSend={sendMessage}
+						disabled={isThinking || isStreaming}
+					/>
 				</div>
 			</div>
 			<DebugPanel events={debugEvents} />
