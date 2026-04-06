@@ -141,6 +141,67 @@ describe("runAgentLoop", () => {
 		});
 	});
 
+	it("executes parallel tool calls and loops back", async () => {
+		const events: AgentEvent[] = [];
+		const client = createMockClient([
+			{
+				tool_calls: [
+					{
+						id: "call_1",
+						type: "function",
+						function: {
+							name: "calculator",
+							arguments: '{"expression":"100/4"}',
+						},
+					},
+					{
+						id: "call_2",
+						type: "function",
+						function: {
+							name: "calculator",
+							arguments: '{"expression":"3+5"}',
+						},
+					},
+				],
+			},
+			{ content: "25 and 8." },
+		]);
+
+		await runAgentLoop({
+			messages: [{ role: "user", content: "What is 100/4 and 3+5?" }],
+			onEvent: (event) => events.push(event),
+			client: client as any,
+		});
+
+		// All tool_call events emitted before any tool_result
+		expect(events[0]).toEqual({ type: "thinking", iteration: 1 });
+		expect(events[1]).toEqual({
+			type: "tool_call",
+			tool: "calculator",
+			args: { expression: "100/4" },
+			iteration: 1,
+		});
+		expect(events[2]).toEqual({
+			type: "tool_call",
+			tool: "calculator",
+			args: { expression: "3+5" },
+			iteration: 1,
+		});
+		expect(events[3]).toEqual({
+			type: "tool_result",
+			tool: "calculator",
+			result: "25",
+			iteration: 1,
+		});
+		expect(events[4]).toEqual({
+			type: "tool_result",
+			tool: "calculator",
+			result: "8",
+			iteration: 1,
+		});
+		expect(events[5]).toEqual({ type: "thinking", iteration: 2 });
+	});
+
 	it("stops after max iterations and emits error", async () => {
 		const events: AgentEvent[] = [];
 		const infiniteToolCall = {

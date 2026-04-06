@@ -20,6 +20,8 @@ export const definition: ChatCompletionTool = {
 	},
 };
 
+// Evaluates a math expression using mathjs. Uses mathjs instead of eval()
+// to avoid arbitrary code execution — mathjs only parses math syntax.
 export async function handler(args: { expression: string }): Promise<string> {
 	try {
 		const result = evaluate(args.expression);

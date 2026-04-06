@@ -20,11 +20,12 @@ export const definition: ChatCompletionTool = {
 
 export async function handler(args: { query: string }): Promise<string> {
 	const apiKey = process.env.TAVILY_API_KEY;
+	const tavilyBaseUrl = process.env.TAVILY_BASE_URL;
 	if (!apiKey) {
 		return "Error: TAVILY_API_KEY is not configured";
 	}
 	try {
-		const response = await fetch("https://api.tavily.com/search", {
+		const response = await fetch(`${tavilyBaseUrl}/search`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({

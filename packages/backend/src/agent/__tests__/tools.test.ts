@@ -19,10 +19,11 @@ describe("calculator tool", () => {
 });
 
 describe("toolDefinitions", () => {
-	it("includes calculator and web_search", () => {
+	it("includes calculator, web_search, and read_url", () => {
 		const names = toolDefinitions.map((t) => t.function.name);
 		expect(names).toContain("calculator");
 		expect(names).toContain("web_search");
+		expect(names).toContain("read_url");
 	});
 });
 
