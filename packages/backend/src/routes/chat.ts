@@ -1,6 +1,6 @@
 import type { WSContext, WSMessageReceive } from "hono/ws";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { runAgentLoop } from "../agent/loop";
+import { runAgentLoop } from "../agent/agentic-loop";
 import type { AgentEvent, ClientMessage } from "../agent/types";
 
 type SessionState = {

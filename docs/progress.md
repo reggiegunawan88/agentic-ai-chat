@@ -93,6 +93,24 @@ An educational chatbot that exposes how AI agentic processes work in real-time. 
   - Both panels (sidebar + debug) become full-screen overlays on mobile
 - **Auto-focus**: Input field auto-focuses when response completes
 
+### `9030b91` — Parallel tool execution, URL reader, loop refactor
+- Parallel tool execution using `Promise.all` for concurrent tool calls
+- New **URL reader tool** (`read-url.ts`): fetches and extracts content from URLs
+- Refactored agent loop into `agentic-loop/` directory for better separation
+
+### `515e17f` — Code comments
+- Step-by-step comments added to WebSocket message handler
+
+### `21fe3ff` — Linter fixes
+- Applied Biome formatting fixes
+
+### `add2e59` — Markdown rendering
+- Assistant responses rendered with `react-markdown` and syntax highlighting
+- Locked dependency versions
+
+### `c295b20` — Model selection
+- Model selection dropdown in the UI (gpt-4.1-nano, gpt-5-nano)
+
 ## Current File Structure
 
 ```
@@ -103,12 +121,17 @@ packages/
 │       ├── routes/
 │       │   └── chat.ts              (WebSocket handler, session state, restore)
 │       └── agent/
-│           ├── loop.ts              (streaming agent loop)
 │           ├── types.ts             (AgentEvent, ClientMessage)
+│           ├── agentic-loop/
+│           │   ├── index.ts         (main loop orchestrator)
+│           │   ├── think.ts         (LLM call step)
+│           │   ├── act.ts           (parallel tool execution step)
+│           │   └── types.ts         (loop-specific types)
 │           ├── tools/
 │           │   ├── index.ts         (registry + executor)
 │           │   ├── calculator.ts
-│           │   └── web-search.ts
+│           │   ├── web-search.ts
+│           │   └── read-url.ts
 │           └── __tests__/
 │               ├── loop.test.ts
 │               └── tools.test.ts
@@ -138,7 +161,10 @@ packages/
 
 - Full agent loop: think → act (tools) → observe → respond
 - Token-level streaming with typewriter effect
-- Calculator and web search tools
+- Calculator, web search, and URL reader tools
+- Parallel tool execution (multiple tools run concurrently)
+- Markdown rendering with syntax highlighting for assistant responses
+- Model selection dropdown (gpt-4.1-nano, gpt-5-nano)
 - Chat persistence across page refreshes
 - Chat resume with backend history restore
 - Sidebar with recent chats, navigation, delete
@@ -149,8 +175,7 @@ packages/
 ## Potential Next Steps
 
 - Streaming tool call detection (show "calling calculator..." before full args arrive)
-- More tools (code interpreter, URL fetcher, etc.)
-- Markdown rendering for assistant responses
+- More tools (code interpreter, etc.)
 - Chat search/filter in sidebar
 - PostgreSQL storage backend (interface already defined)
 - Frontend tests

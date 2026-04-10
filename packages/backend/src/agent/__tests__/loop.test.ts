@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { runAgentLoop } from "../loop";
+import { runAgentLoop } from "../agentic-loop";
 import type { AgentEvent } from "../types";
 
 function createMockStream(
