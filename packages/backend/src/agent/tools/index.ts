@@ -1,11 +1,12 @@
 import type { ChatCompletionTool } from "openai/resources/chat/completions";
 import * as calculator from "./calculator";
+import * as codeRunner from "./code-runner";
 import * as dateTime from "./date-time";
 import * as readUrl from "./read-url";
 import * as weather from "./weather";
 import * as webSearch from "./web-search";
 
-const tools = [calculator, webSearch, readUrl, dateTime, weather];
+const tools = [calculator, webSearch, readUrl, dateTime, weather, codeRunner];
 
 export const toolDefinitions: ChatCompletionTool[] = tools.map(
 	(t) => t.definition,
@@ -28,6 +29,7 @@ const toolHandlers: Record<
 			},
 		),
 	weather: (args) => weather.handler(args as { city: string }),
+	code_runner: (args) => codeRunner.handler(args as { code: string }),
 };
 
 export async function executeTool(
