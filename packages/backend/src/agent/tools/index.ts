@@ -2,9 +2,10 @@ import type { ChatCompletionTool } from "openai/resources/chat/completions";
 import * as calculator from "./calculator";
 import * as dateTime from "./date-time";
 import * as readUrl from "./read-url";
+import * as weather from "./weather";
 import * as webSearch from "./web-search";
 
-const tools = [calculator, webSearch, readUrl, dateTime];
+const tools = [calculator, webSearch, readUrl, dateTime, weather];
 
 export const toolDefinitions: ChatCompletionTool[] = tools.map(
 	(t) => t.definition,
@@ -26,6 +27,7 @@ const toolHandlers: Record<
 				days?: number;
 			},
 		),
+	weather: (args) => weather.handler(args as { city: string }),
 };
 
 export async function executeTool(
