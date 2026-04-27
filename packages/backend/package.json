@@ -6,9 +6,10 @@
 		"dev": "bun --env-file=../../.env run --watch src/index.ts"
 	},
 	"dependencies": {
+		"@aws-sdk/client-ssm": "3.1037.0",
 		"hono": "4.7.11",
-		"openai": "4.98.0",
-		"mathjs": "14.5.2"
+		"mathjs": "14.5.2",
+		"openai": "4.98.0"
 	},
 	"devDependencies": {
 		"bun-types": "1.3.11"

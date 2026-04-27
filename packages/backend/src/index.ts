@@ -1,14 +1,14 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createBunWebSocket, serveStatic } from "hono/bun";
-import { validateEnv } from "./env";
+import { loadEnv } from "./env";
 import {
 	handleWebSocketClose,
 	handleWebSocketMessage,
 	handleWebSocketOpen,
 } from "./routes/chat";
 
-validateEnv();
+await loadEnv();
 
 const app = new Hono();
 const { upgradeWebSocket, websocket } = createBunWebSocket();
