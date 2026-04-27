@@ -1,11 +1,14 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createBunWebSocket } from "hono/bun";
+import { createBunWebSocket, serveStatic } from "hono/bun";
+import { validateEnv } from "./env";
 import {
 	handleWebSocketClose,
 	handleWebSocketMessage,
 	handleWebSocketOpen,
 } from "./routes/chat";
+
+validateEnv();
 
 const app = new Hono();
 const { upgradeWebSocket, websocket } = createBunWebSocket();
@@ -28,6 +31,12 @@ app.get(
 		},
 	})),
 );
+
+// SPA bundle: serve files; fall through to index.html so client-side routing works.
+// In dev the build dir doesn't exist; vite serves the frontend on :3000 instead.
+const SPA_ROOT = "./packages/frontend/build/client";
+app.use("/*", serveStatic({ root: SPA_ROOT }));
+app.use("/*", serveStatic({ path: `${SPA_ROOT}/index.html` }));
 
 export default {
 	port: 5000,
