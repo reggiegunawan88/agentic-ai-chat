@@ -16,12 +16,19 @@ permissions:
 env:
   AWS_REGION: ap-northeast-1
   ECR_REPOSITORY: agentic_chat_app
+  ROLE_ARN: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
 jobs:
   build-pr:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
+      - name: Inspect role ARN secret (debug)
+        run: |
+          echo "length: ${#ROLE_ARN}"
+          echo "first chars: $(printf '%s' "$ROLE_ARN" | head -c 20 | od -c | head -1)" 
+          echo "last chars:  $(printf '%s' "$ROLE_ARN" | tail -c 10 | od -c | head -1)"
+
       - name: Checkout
         uses: actions/checkout@v4
 
