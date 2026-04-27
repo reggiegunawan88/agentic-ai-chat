@@ -2,11 +2,8 @@ import { GetParametersCommand, SSMClient } from "@aws-sdk/client-ssm";
 
 const REQUIRED = ["OPENAI_API_KEY", "TAVILY_API_KEY", "TAVILY_BASE_URL"] as const;
 
-const SSM_PARAM_NAMES: Record<(typeof REQUIRED)[number], string> = {
-	OPENAI_API_KEY: "/agentic-ai/openai-api-key",
-	TAVILY_API_KEY: "/agentic-ai/tavily-api-key",
-	TAVILY_BASE_URL: "/agentic-ai/tavily-base-url",
-};
+const SSM_PREFIX = "/agentic-chat-app";
+const ssmName = (key: (typeof REQUIRED)[number]) => `${SSM_PREFIX}/${key}`;
 
 async function fetchFromSSM(
 	missing: readonly (typeof REQUIRED)[number][],
@@ -18,7 +15,7 @@ async function fetchFromSSM(
 	});
 	const res = await client.send(
 		new GetParametersCommand({
-			Names: missing.map((key) => SSM_PARAM_NAMES[key]),
+			Names: missing.map(ssmName),
 			WithDecryption: true,
 		}),
 	);
@@ -26,7 +23,7 @@ async function fetchFromSSM(
 		(res.Parameters ?? []).map((p) => [p.Name ?? "", p.Value ?? ""]),
 	);
 	for (const key of missing) {
-		const value = valuesByName.get(SSM_PARAM_NAMES[key]);
+		const value = valuesByName.get(ssmName(key));
 		if (value) process.env[key] = value;
 	}
 }
@@ -46,6 +43,6 @@ export async function loadEnv(): Promise<void> {
 
 	throw new Error(
 		`Missing required environment variables: ${stillMissing.join(", ")}. ` +
-			"Set them in .env (local) or under /agentic-ai/* in SSM Parameter Store (Lambda).",
+			`Set them in .env (local) or under ${SSM_PREFIX}/* in SSM Parameter Store (Lambda).`,
 	);
 }
