@@ -8,6 +8,11 @@ on:
     branches:
       - master
 
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
 env:
   AWS_REGION: ap-northeast-1
   ECR_REPOSITORY: agentic_chat_app
@@ -41,10 +46,6 @@ jobs:
   build-and-push:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - name: Checkout (with submodules)
