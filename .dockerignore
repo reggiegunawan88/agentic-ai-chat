@@ -1,0 +1,15 @@
+**/node_modules
+**/.react-router
+**/build
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+.git
+.github
+.claude
+.DS_Store
+**/*.log
+docs
+README.md
+**/README.md

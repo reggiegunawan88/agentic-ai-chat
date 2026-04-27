@@ -8,7 +8,8 @@
 	"scripts": {
 		"dev": "bun run --filter '*' dev",
 		"format": "biome format --write .",
-		"lint": "biome lint ."
+		"lint": "biome lint .",
+		"build": "bun run --filter '*' build"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.10"
