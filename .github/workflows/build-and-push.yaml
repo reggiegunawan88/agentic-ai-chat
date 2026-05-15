@@ -1,4 +1,4 @@
-name: Build and Push ECR Image
+name: Build and Push ECR Image to Docker Hub
 
 on:
   push:
@@ -45,7 +45,8 @@ jobs:
             })
 
   build-and-push:
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    # DISABLED: ECR push is paused. Re-enable by removing the `false &&` prefix below.
+    if: false && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
 
     steps:
